@@ -111,6 +111,22 @@
     color: rgba(127, 141, 163, .7); text-align: center;
   }
 
+  nav.lang {
+    position: fixed; z-index: 3; top: 2.4vh; right: 3vw;
+    display: flex; gap: .7rem;
+  }
+  nav.lang button {
+    width: 34px; height: 23px; padding: 0; cursor: pointer;
+    background: none; border: 1px solid rgba(223, 230, 240, .25); border-radius: 3px;
+    overflow: hidden; opacity: .5;
+    transition: opacity .2s, border-color .2s, box-shadow .2s;
+  }
+  nav.lang button svg { display: block; width: 100%; height: 100%; }
+  nav.lang button:hover, nav.lang button:focus-visible { opacity: .9; outline: none; border-color: var(--ice); }
+  nav.lang button[aria-pressed="true"] {
+    opacity: 1; border-color: var(--amber); box-shadow: 0 0 14px rgba(242, 181, 68, .45);
+  }
+
   @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
 
@@ -124,14 +140,97 @@
 <canvas id="stars" aria-hidden="true"></canvas>
 <div class="horizon" aria-hidden="true"></div>
 
+<nav class="lang" aria-label="Sprache / Language / Cànan">
+  <button type="button" data-lang="de" aria-label="Deutsch" title="Deutsch" aria-pressed="true">
+    <svg viewBox="0 0 5 3" preserveAspectRatio="none" aria-hidden="true"><rect width="5" height="1" fill="#000"/><rect y="1" width="5" height="1" fill="#DD0000"/><rect y="2" width="5" height="1" fill="#FFCE00"/></svg>
+  </button>
+  <button type="button" data-lang="en" aria-label="English" title="English" aria-pressed="false">
+    <svg viewBox="0 0 60 30" preserveAspectRatio="none" aria-hidden="true">
+      <clipPath id="uk-a"><path d="M0,0v30h60V0z"/></clipPath>
+      <clipPath id="uk-b"><path d="M30,15h30v15zv15H0zH0V0zV0h30z"/></clipPath>
+      <g clip-path="url(#uk-a)">
+        <path d="M0,0v30h60V0z" fill="#012169"/>
+        <path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/>
+        <path d="M0,0L60,30M60,0L0,30" clip-path="url(#uk-b)" stroke="#C8102E" stroke-width="4"/>
+        <path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/>
+        <path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/>
+      </g>
+    </svg>
+  </button>
+  <button type="button" data-lang="gd" aria-label="Gàidhlig" title="Gàidhlig" aria-pressed="false">
+    <svg viewBox="0 0 5 3" preserveAspectRatio="none" aria-hidden="true"><rect width="5" height="3" fill="#005EB8"/><path d="M0,0L5,3M5,0L0,3" stroke="#fff" stroke-width=".6"/></svg>
+  </button>
+</nav>
+
 <main>
-  <div class="status"><i></i>Funkkanal offen</div>
+  <div class="status"><i></i><span data-i18n="status">Funkkanal offen</span></div>
   <h1>Skywalker<span>.ag</span></h1>
-  <p class="line">Hier draußen ist es still. Keine Fracht, kein Logbuch, kein Kurs.<br>Nur eine Frequenz, auf der jemand zuhört.</p>
-  <a class="mail" href="mailto:luke@skywalker.ag"><small>Nachricht senden an</small>luke@skywalker.ag</a>
+  <p class="line"><span data-i18n="line1">Hier draußen ist es still. Keine Fracht, kein Logbuch, kein Kurs.</span><br><span data-i18n="line2">Nur eine Frequenz, auf der jemand zuhört.</span></p>
+  <a class="mail" href="mailto:luke@skywalker.ag"><small data-i18n="cta">Nachricht senden an</small>luke@skywalker.ag</a>
 </main>
 
-<footer>Sektor AG · Position stabil</footer>
+<footer data-i18n="footer">Sektor AG · Position stabil</footer>
+
+<script>
+(function () {
+  var T = {
+    de: {
+      status: 'Funkkanal offen',
+      line1: 'Hier draußen ist es still. Keine Fracht, kein Logbuch, kein Kurs.',
+      line2: 'Nur eine Frequenz, auf der jemand zuhört.',
+      cta: 'Nachricht senden an',
+      footer: 'Sektor AG · Position stabil',
+      desc: 'skywalker.ag – Funkkanal offen. Kontakt per E-Mail.'
+    },
+    en: {
+      status: 'Channel open',
+      line1: 'It is quiet out here. No cargo, no logbook, no course.',
+      line2: 'Just one frequency where someone is listening.',
+      cta: 'Send a message to',
+      footer: 'Sector AG · Position stable',
+      desc: 'skywalker.ag – channel open. Contact by email.'
+    },
+    gd: {
+      status: 'Seanail fosgailte',
+      line1: 'Tha e sàmhach a-muigh an seo. Gun luchd, gun leabhar-latha, gun chùrsa.',
+      line2: 'Dìreach aon tricead far a bheil cuideigin ag èisteachd.',
+      cta: 'Cuir teachdaireachd gu',
+      footer: 'Roinn AG · Suidheachadh seasmhach',
+      desc: 'skywalker.ag – seanail fosgailte. Cuir fios air post-d.'
+    }
+  };
+  var buttons = document.querySelectorAll('nav.lang button');
+
+  function apply(lang, remember) {
+    if (!T[lang]) lang = 'de';
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      el.textContent = T[lang][el.getAttribute('data-i18n')];
+    });
+    var meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute('content', T[lang].desc);
+    buttons.forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false');
+    });
+    if (remember) {
+      try { localStorage.setItem('lang', lang); } catch (e) {}
+      try { history.replaceState(null, '', lang === 'de' ? location.pathname : '#' + lang); } catch (e) {}
+    }
+  }
+
+  buttons.forEach(function (b) {
+    b.addEventListener('click', function () { apply(b.getAttribute('data-lang'), true); });
+  });
+
+  var start = location.hash.replace('#', '');
+  if (!T[start]) { try { start = localStorage.getItem('lang'); } catch (e) { start = null; } }
+  if (!T[start]) {
+    var n = (navigator.language || 'de').toLowerCase();
+    start = n.indexOf('gd') === 0 ? 'gd' : n.indexOf('de') === 0 ? 'de' : 'en';
+  }
+  apply(start, false);
+})();
+</script>
 
 <script>
 (function () {

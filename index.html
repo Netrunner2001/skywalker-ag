@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>skywalker.ag</title>
+<meta name="description" content="skywalker.ag – Funkkanal offen. Kontakt per E-Mail.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#05070d">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2305070d'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23f2b544'/%3E%3Cellipse cx='32' cy='32' rx='22' ry='8' fill='none' stroke='%237fd6e8' stroke-width='2.5' transform='rotate(-24 32 32)'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --void: #05070d;
+    --deep: #0b1220;
+    --amber: #f2b544;
+    --ice: #7fd6e8;
+    --text: #dfe6f0;
+    --muted: #7f8da3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: radial-gradient(120% 90% at 50% 0%, var(--deep) 0%, var(--void) 62%);
+    color: var(--text);
+    font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  canvas#stars { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* Planetenhorizont am unteren Bildrand */
+  .horizon {
+    position: fixed; left: 50%; bottom: -118vmax;
+    width: 240vmax; height: 130vmax; transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, #0a0f1a 96%, #101a2c 99%, transparent 100%);
+    box-shadow:
+      0 -2px 0 rgba(127, 214, 232, .55),
+      0 -14px 46px rgba(127, 214, 232, .28),
+      0 -60px 160px rgba(242, 181, 68, .13);
+    pointer-events: none;
+  }
+
+  main {
+    position: relative; z-index: 2;
+    min-height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 6vh 6vw 14vh; text-align: center;
+  }
+
+  .status {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: clamp(.62rem, 1.4vw, .78rem);
+    letter-spacing: .34em; text-transform: uppercase;
+    color: var(--ice);
+    display: inline-flex; align-items: center; gap: .9em;
+    opacity: 0; animation: rise .9s .2s ease-out forwards;
+  }
+  .status i {
+    width: .6em; height: .6em; border-radius: 50%;
+    background: var(--amber); box-shadow: 0 0 12px var(--amber);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+
+  h1 {
+    margin: 1.1em 0 .5em;
+    font-weight: 200;
+    font-size: clamp(2.3rem, 9.5vw, 7.2rem);
+    letter-spacing: .2em; text-indent: .2em;
+    text-transform: uppercase; line-height: 1;
+    color: #fff;
+    text-shadow: 0 0 34px rgba(127, 214, 232, .32);
+    opacity: 0; animation: rise 1.1s .45s ease-out forwards;
+  }
+  h1 span { color: var(--amber); font-weight: 400; text-shadow: 0 0 30px rgba(242, 181, 68, .45); }
+
+  p.line {
+    max-width: 34em;
+    font-size: clamp(.95rem, 2.1vw, 1.2rem);
+    font-weight: 300; line-height: 1.7; color: var(--muted);
+    opacity: 0; animation: rise 1.1s .75s ease-out forwards;
+  }
+
+  a.mail {
+    margin-top: 2.6em;
+    position: relative; display: inline-block;
+    padding: 1.05em 2.1em;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: clamp(.92rem, 2.4vw, 1.25rem);
+    letter-spacing: .1em;
+    color: var(--amber); text-decoration: none;
+    border: 1px solid rgba(242, 181, 68, .5);
+    background: rgba(242, 181, 68, .05);
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+    transition: background .25s, color .25s, box-shadow .25s;
+    opacity: 0; animation: rise 1.1s 1.05s ease-out forwards;
+  }
+  a.mail:hover, a.mail:focus-visible {
+    background: var(--amber); color: var(--void); outline: none;
+    box-shadow: 0 0 40px rgba(242, 181, 68, .4);
+  }
+  a.mail small {
+    display: block; margin-bottom: .55em;
+    font-size: .58em; letter-spacing: .32em; text-transform: uppercase; opacity: .75;
+  }
+
+  footer {
+    position: fixed; z-index: 2; left: 0; right: 0; bottom: 2.2vh;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: .64rem; letter-spacing: .28em; text-transform: uppercase;
+    color: rgba(127, 141, 163, .7); text-align: center;
+  }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .status, h1, p.line, a.mail { animation: none; opacity: 1; }
+    .status i { animation: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div class="horizon" aria-hidden="true"></div>
+
+<main>
+  <div class="status"><i></i>Funkkanal offen</div>
+  <h1>Skywalker<span>.ag</span></h1>
+  <p class="line">Hier draußen ist es still. Keine Fracht, kein Logbuch, kein Kurs.<br>Nur eine Frequenz, auf der jemand zuhört.</p>
+  <a class="mail" href="mailto:luke@skywalker.ag"><small>Nachricht senden an</small>luke@skywalker.ag</a>
+</main>
+
+<footer>Sektor AG · Position stabil</footer>
+
+<script>
+(function () {
+  var c = document.getElementById('stars'), x = c.getContext('2d');
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var w, h, dpr, stars = [], mx = 0, my = 0;
+
+  function size() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = c.width = innerWidth * dpr; h = c.height = innerHeight * dpr;
+    var n = Math.round(innerWidth * innerHeight / 2600);
+    stars = [];
+    for (var i = 0; i < n; i++) {
+      var z = Math.random();
+      stars.push({
+        x: Math.random() * w, y: Math.random() * h, z: z,
+        r: (0.3 + z * 1.3) * dpr,
+        t: Math.random() * 6.28, s: 0.4 + Math.random() * 1.4,
+        warm: Math.random() < 0.12
+      });
+    }
+  }
+
+  function draw(time) {
+    x.clearRect(0, 0, w, h);
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      if (!still) {
+        s.x -= (0.02 + s.z * 0.12) * dpr;
+        if (s.x < -4) s.x = w + 4;
+      }
+      var a = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(s.t + time * 0.001 * s.s));
+      x.globalAlpha = a * (0.35 + s.z * 0.65);
+      x.fillStyle = s.warm ? '#f2b544' : '#dbeeff';
+      x.beginPath();
+      x.arc(s.x + mx * s.z * 18 * dpr, s.y + my * s.z * 18 * dpr, s.r, 0, 6.2832);
+      x.fill();
+    }
+    x.globalAlpha = 1;
+    if (!still) requestAnimationFrame(draw);
+  }
+
+  addEventListener('resize', function () { size(); if (still) draw(0); });
+  addEventListener('pointermove', function (e) {
+    mx = (e.clientX / innerWidth - 0.5) * -1;
+    my = (e.clientY / innerHeight - 0.5) * -1;
+  });
+  size();
+  if (still) draw(0); else requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
